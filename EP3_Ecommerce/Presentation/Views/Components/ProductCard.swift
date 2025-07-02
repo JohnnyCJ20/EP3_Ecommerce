@@ -2,52 +2,99 @@ import SwiftUI
 
 struct ProductCard: View {
     let product: Product
-    @EnvironmentObject var viewModel: AppViewModel
+    let isFavorite: Bool
+    let onFavoriteToggle: () -> Void
+    let onAddToCart: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            AsyncImage(url: URL(string: product.image)) { image in
+        VStack(alignment: .leading, spacing: 12) {
+            // Imagen del producto
+            AsyncImage(url: URL(string: product.imageURL)) { image in
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .aspectRatio(contentMode: .fill)
             } placeholder: {
-                Rectangle()
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color.gray.opacity(0.3))
-                    .aspectRatio(1, contentMode: .fit)
+                    .overlay(
+                        Image(systemName: "photo")
+                            .foregroundColor(.gray)
+                    )
             }
-            .frame(height: 120)
+            .frame(height: 150)
             .clipped()
+            .cornerRadius(12)
+            .overlay(
+                // Botón de favorito
+                Button(action: onFavoriteToggle) {
+                    Image(systemName: isFavorite ? "heart.fill" : "heart")
+                        .foregroundColor(isFavorite ? .red : .gray)
+                        .font(.title2)
+                        .background(
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 35, height: 35)
+                        )
+                }
+                .padding(8),
+                alignment: .topTrailing
+            )
             
-            Text(product.title)
-                .font(.caption)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-            
-            Text("$\(product.price, specifier: "%.2f")")
-                .font(.headline)
-                .fontWeight(.bold)
-            
-            HStack {
-                Button(action: {
-                    viewModel.toggleFavorite(product.id)
-                }) {
-                    Image(systemName: viewModel.favorites.contains(product.id) ? "heart.fill" : "heart")
-                        .foregroundColor(viewModel.favorites.contains(product.id) ? .red : .gray)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(product.name)
+                    .font(.headline)
+                    .lineLimit(2)
+                
+                Text(product.category.capitalized)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(6)
+                
+                HStack {
+                    // Rating
+                    HStack(spacing: 2) {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                            .font(.caption)
+                        Text(String(format: "%.1f", product.rating.score))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("$\(product.price, specifier: "%.2f")")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
                 }
                 
-                Spacer()
-                
-                Button(action: {
-                    viewModel.addToCart(product)
-                }) {
-                    Image(systemName: "cart.badge.plus")
-                        .foregroundColor(.blue)
+                // Botón agregar al carrito
+                Button(action: onAddToCart) {
+                    HStack {
+                        Image(systemName: "cart.badge.plus")
+                        Text("Agregar")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(product.isAvailable ? Color.blue : Color.gray)
+                    )
                 }
+                .disabled(!product.isAvailable)
             }
+            .padding(.horizontal, 4)
         }
-        .padding(8)
+        .padding()
         .background(Color.white)
-        .cornerRadius(10)
-        .shadow(color: .gray.opacity(0.2), radius: 4, x: 0, y: 2)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
