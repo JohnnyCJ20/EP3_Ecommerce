@@ -2,40 +2,47 @@ import SwiftUI
 
 struct CartItemRow: View {
     let cartItem: CartItem
-    @EnvironmentObject var viewModel: AppViewModel
+    let onQuantityChange: (Int) -> Void
+    let onRemove: () -> Void
     
     var body: some View {
-        HStack {
-            AsyncImage(url: URL(string: cartItem.product.image)) { image in
+        HStack(spacing: 12) {
+            // Imagen del producto
+            AsyncImage(url: URL(string: cartItem.product.imageURL)) { image in
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .aspectRatio(contentMode: .fill)
             } placeholder: {
-                Rectangle()
+                RoundedRectangle(cornerRadius: 8)
                     .fill(Color.gray.opacity(0.3))
+                    .overlay(
+                        Image(systemName: "photo")
+                            .foregroundColor(.gray)
+                    )
             }
-            .frame(width: 60, height: 60)
+            .frame(width: 80, height: 80)
             .clipped()
+            .cornerRadius(8)
             
+            // Información del producto
             VStack(alignment: .leading, spacing: 4) {
-                Text(cartItem.product.title)
-                    .font(.caption)
+                Text(cartItem.product.name)
+                    .font(.headline)
                     .lineLimit(2)
                 
                 Text("$\(cartItem.product.price, specifier: "%.2f")")
-                    .font(.headline)
-                    .fontWeight(.bold)
-            }
-            
-            Spacer()
-            
-            VStack {
+                    .font(.subheadline)
+                    .foregroundColor(.blue)
+                    .fontWeight(.medium)
+                
+                // Controles de cantidad
                 HStack {
                     Button(action: {
-                        viewModel.updateQuantity(cartItem, quantity: cartItem.quantity - 1)
+                        onQuantityChange(max(1, cartItem.quantity - 1))
                     }) {
-                        Image(systemName: "minus")
-                            .foregroundColor(.blue)
+                        Image(systemName: "minus.circle.fill")
+                            .foregroundColor(.red)
+                            .font(.title2)
                     }
                     
                     Text("\(cartItem.quantity)")
@@ -43,22 +50,30 @@ struct CartItemRow: View {
                         .frame(minWidth: 30)
                     
                     Button(action: {
-                        viewModel.updateQuantity(cartItem, quantity: cartItem.quantity + 1)
+                        onQuantityChange(cartItem.quantity + 1)
                     }) {
-                        Image(systemName: "plus")
-                            .foregroundColor(.blue)
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.title2)
                     }
                 }
+            }
+            
+            Spacer()
+            
+            // Subtotal y botón eliminar
+            VStack(alignment: .trailing, spacing: 8) {
+                Text("$\(Double(cartItem.quantity) * cartItem.product.price, specifier: "%.2f")")
+                    .font(.headline)
+                    .fontWeight(.bold)
                 
-                Button(action: {
-                    viewModel.removeFromCart(cartItem)
-                }) {
+                Button(action: onRemove) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
+                        .font(.title2)
                 }
-                .padding(.top, 5)
             }
         }
-        .padding(.vertical, 5)
+        .padding(.vertical, 8)
     }
 }
