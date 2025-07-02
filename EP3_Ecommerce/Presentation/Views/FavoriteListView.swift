@@ -3,34 +3,52 @@ import SwiftUI
 struct FavoriteListView: View {
     @EnvironmentObject var viewModel: AppViewModel
     
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
-    
     var body: some View {
         NavigationView {
-            ScrollView {
-                if viewModel.favoriteProducts.isEmpty {
-                    VStack {
-                        Image(systemName: "heart.slash")
-                            .font(.system(size: 50))
-                            .foregroundColor(.gray)
-                        Text("No favorites yet")
-                            .font(.title2)
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.top, 100)
+            VStack {
+                if viewModel.favorites.isEmpty {
+                    EmptyFavoritesView()
                 } else {
-                    LazyVGrid(columns: columns, spacing: 15) {
-                        ForEach(viewModel.favoriteProducts) { product in
-                            FavoriteCard(product: product)
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(viewModel.favorites) { product in
+                                FavoriteCard(
+                                    product: product,
+                                    onRemoveFromFavorites: {
+                                        viewModel.toggleFavorite(product)
+                                    },
+                                    onAddToCart: {
+                                        viewModel.addToCart(product)
+                                    }
+                                )
+                            }
                         }
+                        .padding()
                     }
-                    .padding()
                 }
             }
-            .navigationTitle("Favorites")
+            .navigationTitle("Favoritos")
+            .navigationBarTitleDisplayMode(.large)
         }
+    }
+}
+
+struct EmptyFavoritesView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "heart")
+                .font(.system(size: 80))
+                .foregroundColor(.gray)
+            
+            Text("No tienes favoritos")
+                .font(.title2)
+                .fontWeight(.medium)
+            
+            Text("Marca productos como favoritos para verlos aquí")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
     }
 }
